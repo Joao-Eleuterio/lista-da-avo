@@ -1,0 +1,27 @@
+LISTA DA AVÓ — pôr online (GitHub Pages)
+=========================================
+
+1) Extrai este zip para:
+   C:\Users\Joao\Documents\Pessoal\Projetos_Dev\lista-da-avo
+   (os ficheiros devem ficar diretamente lá dentro, sem sub-pasta)
+
+2) Abre o PowerShell nessa pasta e corre:
+
+   cd "C:\Users\Joao\Documents\Pessoal\Projetos_Dev\lista-da-avo"
+   git init
+   git add .
+   git commit -m "Lista da Avo"
+   git branch -M main
+   git remote add origin https://github.com/Joao-Eleuterio/lista-da-avo.git
+   git push -u origin main
+
+   - No push vai pedir login do GitHub -> metes tu.
+   - Se reclamar de identidade, corre uma vez:
+       git config --global user.name "Joao-Eleuterio"
+       git config --global user.email "o-teu-email"
+
+3) Avisa o Claude: ele liga o GitHub Pages no browser.
+   Site final: https://joao-eleuterio.github.io/lista-da-avo/
+
+Nota: o backend Supabase (projeto "Lista da Avo") ja esta criado e o
+index.html ja aponta para la. Nao precisas de configurar mais nada.
