@@ -10,8 +10,9 @@ Lista de compras partilhada para as compras semanais dos avós. Toda a família 
 ## O que tem
 - **Lista por categorias** — frescos, talho & peixe, laticínios, padaria, mercearia, congelados, bebidas, limpeza, higiene, outros. Organizada por corredores para andares menos no supermercado. Ao adicionar, o **Auto ✨** adivinha a categoria pelo nome (ou escolhes tu no chip).
 - **Quantidades com contador +/−** — cada produto tem − 1 + direto na linha.
-- **Produtos habituais (1 toque)** — os que compram sempre ficam como chips; tocas e vão para a lista. Guardas manualmente ou aparecem sugeridos a partir do histórico.
-- **Repetir a última compra** — um botão copia a lista da semana anterior para hoje (sem duplicar o que já lá está).
+- **Produtos habituais (1 toque)** — podem ser guardados manualmente e também entram automaticamente depois de serem comprados em **3 compras concluídas diferentes**. Não são permitidos duplicados.
+- **Repetir a última compra** — um botão copia a lista da semana anterior para hoje sem duplicar produtos.
+- **Proteção contra duplicados** — se tentares adicionar novamente o mesmo produto à lista, aparece **“Já existente na lista.”**. A proteção existe no frontend e também na base de dados.
 - **Partilhado + tempo real** — código de família, sem login. Realtime do Supabase mantém todos os telemóveis sincronizados.
 - **Histórico** — cada *Terminar compras* fecha a lista e guarda-a por data.
 - **Pesquisa de produtos reais** — via Open Food Facts (grátis, sem chave), com marca e imagem.
@@ -23,7 +24,9 @@ Lista de compras partilhada para as compras semanais dos avós. Toda a família 
 2. **SQL Editor** → cola o `supabase.sql` → **Run**.
 3. **Project Settings → API** → copia o **Project URL** e a **anon / public key**.
 
-> Já tinhas corrido a versão anterior do schema? No fim do `supabase.sql` está o bloco de migração (categoria + quantidade int + tabela habituais) — corre só esse.
+> **Se já tinhas a versão anterior instalada:** podes correr novamente o `supabase.sql` completo. Esta versão adiciona os índices anti-duplicados e a função dos habituais automáticos.
+>
+> Para apagar o histórico criado apenas para testes, corre **uma única vez** o ficheiro `limpar_historico_teste.sql` no SQL Editor do Supabase.
 
 ## Passo 2 — Configurar
 No topo do `<script>` do `index.html`:
@@ -59,3 +62,10 @@ Tudo no *free tier*. Projetos Supabase grátis pausam após ~1 semana sem ativid
 
 ## 🔒 Segurança
 Modelo de **código/UUID não-adivinhável**: quem tem o código entra. A tabela de famílias está fechada (códigos não são enumeráveis); listas/itens/habituais são acessíveis a quem conhece o `familia_id`. Perfeito para uma lista de compras. Para dados mesmo privados, dá para migrar para **Supabase Auth** (magic link) + policies por `auth.uid()` — posso ajudar quando quiseres.
+
+
+## APIs de produtos e preços
+
+- A pesquisa de produtos continua a usar **Open Food Facts**, uma base aberta com API para nome, marca, imagem, código de barras e informação do produto.
+- Para preços existe o projeto **Open Prices** da Open Food Facts, também com REST API. Há dados de Portugal e existem localizações Pingo Doce registadas, mas os preços são comunitários e a cobertura não é garantida para todos os produtos/lojas.
+- Não foi encontrada uma API pública oficial do Pingo Doce para catálogo/preços em tempo real. Por isso, não convém depender de scraping privado como base principal desta app.
