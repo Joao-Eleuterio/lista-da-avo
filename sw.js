@@ -1,29 +1,57 @@
-// Cache simples do "shell" da app. Os dados vêm sempre do Supabase (rede).
-const CACHE = "compras-v1";
-const SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+// Cache do shell da app. Os dados do Supabase/Open Food Facts ficam sempre em rede.
+// Mudar a versão força Safari/Chrome/WebViews a largarem CSS/JS antigos.
+const CACHE = "compras-v3-responsive";
+const SHELL = [
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./app-core.js",
+  "./app-ui.js",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-512-maskable.png"
+];
 
-self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(SHELL))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener("activate", e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("fetch", e => {
-  const url = new URL(e.request.url);
-  // Nunca cachear chamadas ao Supabase nem ao Open Food Facts — sempre rede.
+self.addEventListener("fetch", event => {
+  if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+
+  // Dados partilhados têm de vir sempre da rede.
   if (url.hostname.includes("supabase") || url.hostname.includes("openfoodfacts")) return;
-  if (e.request.method !== "GET") return;
-  // network-first para o shell, com fallback ao cache (offline)
-  e.respondWith(
-    fetch(e.request).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
-      return res;
-    }).catch(() => caches.match(e.request).then(r => r || caches.match("./index.html")))
+
+  // Só tratamos recursos http(s); evita problemas com schemes internos de WebViews.
+  if (url.protocol !== "http:" && url.protocol !== "https:") return;
+
+  // Network-first: uma atualização publicada ganha sempre ao cache antigo.
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        if (response && response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy)).catch(() => {});
+        }
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then(cached => cached || caches.match("./index.html"))
+      )
   );
 });
